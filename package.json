@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@adiwajshing/baileys": "git+https://github.com/WhiskeySockets/Baileys.git",
+    "axios": "^1.6.5",
+    "cheerio": "^1.0.0-rc.12",
+    "pino": "^8.17.2"
+  }
+}
