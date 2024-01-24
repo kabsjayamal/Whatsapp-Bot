@@ -5,6 +5,13 @@ const {
     jidNormalizedUser,
     getContentType
 } = require('@adiwajshing/baileys')
+const P = require('pino')
+const fs = require('fs')
+const prefix = '.'
+const owner = ['94766866297']
+const axios = require('axios');
+const cheerio = require('cheerio');
+const url = 'https://cjtedu.com';
 
 async function connectToWA() {
     const { state, saveCreds } = await useMultiFileAuthState('./auth_info_baileys')
@@ -16,16 +23,25 @@ async function connectToWA() {
     })
 
     conn.ev.on('connection.update', (update) => {
-        const { connection, lastDisconnect } = update
+        const { connection, lastDisconnect } = update;
         if (connection === 'close') {
+            console.log('Connection closed. Last disconnect reason:', lastDisconnect.reason);
+            if (lastDisconnect.error) {
+                console.error('Last disconnect error:', lastDisconnect.error);
+            }
+    
             if (lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut) {
-                connectToWA()
+                console.log('Attempting to reconnect...');
+                connectToWA();
             }
         } else if (connection === 'open') {
-            console.log('Bot Connected ✅')
+            console.log('Bot Connected ✅');
         }
-    })
+    });
     conn.ev.on('creds.update', saveCreds)
+
+    const database = JSON.parse(fs.readFileSync('./database/database.json'));
+
     conn.ev.on('messages.upsert', async (mek) => {
         try {
 
@@ -68,6 +84,38 @@ async function connectToWA() {
 
             
             switch (command) {
+                case 'dhamma':
+                    function sendData() {	
+                        axios.get(url)
+                          .then(response => {
+                            const $ = cheerio.load(response.data);
+                            const latestArticleLink = $('div > div > div.pad.read-details.color-tp-pad > div.read-title > h4 > a').attr('href');
+                        
+                            axios.get("https://cjtedu.com/archives/1700")
+                              .then(response => {
+                                const $ = cheerio.load(response.data);
+                                const title = $('div.entry-content-wrap.read-single > div.entry-content-title-featured-wrap > header > div > div > h1').text().trim();
+                                const description = $('.read-details p').map((i, el) => $(el).text().trim()).get().join('\n\n');
+                                const img = $('.read-details img').attr('src');
+                                const imageLinks = []
+                        
+                                $('.post-body img').each(function () {
+                                    imageLinks.push($(this).attr('src'));
+                                  });
+                                  console.log(latestArticleLink, title, description, img);
+                                  async function message(){
+                                    await conn.sendMessage("120363225924520943@g.us", { image: { url: img }, caption: '*' + title + '*\n\n' + description});  
+                                  };
+                                  message();
+                                  
+                            
+                              })
+                              .catch(error => {
+                                console.error(error);
+                              });
+                          })}
+                          sendData();
+                    break
                 case 'jid':
                     reply(from)
                     break
