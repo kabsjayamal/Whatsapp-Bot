@@ -40,8 +40,6 @@ async function connectToWA() {
     });
     conn.ev.on('creds.update', saveCreds)
 
-    const database = JSON.parse(fs.readFileSync('./database/database.json'));
-
     conn.ev.on('messages.upsert', async (mek) => {
         try {
 
