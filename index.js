@@ -91,7 +91,7 @@ async function connectToWA() {
             // Check if the detected language is Sinhala or English
             
 
-            if (senderNumber == owner) {
+            if (!(senderNumber == '94707344725') && !(senderNumber == '94777344725')) {
                 conn.sendPresenceUpdate('composing', from) 
                 const chatHistory = []
                 const trt = await translate(body, {from: 'si'}, {to: 'en'})
