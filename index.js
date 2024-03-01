@@ -1,17 +1,17 @@
-const {
-    default: makeWASocket,
+import {
+    makeWASocket,
     useMultiFileAuthState,
     DisconnectReason,
     jidNormalizedUser,
     getContentType
-} = require('@adiwajshing/baileys')
-const P = require('pino')
-const fs = require('fs')
+} from '@adiwajshing/baileys'
+import P from 'pino'
+import fs from 'fs'
 const prefix = '.'
 const owner = ['94766866297']
-const axios = require('axios');
-const cheerio = require('cheerio');
-const url = 'https://cjtedu.com';
+import translate from 'translate';
+import langdetect from 'langdetect';
+
 
 async function connectToWA() {
     const { state, saveCreds } = await useMultiFileAuthState('./auth_info_baileys')
@@ -79,44 +79,57 @@ async function connectToWA() {
             const groupOwner = mek.isGroup ? groupMetadata.owner : ''
     	    const isBotAdmins = mek.isGroup ? groupAdmins.includes(botNumber) : false
     	    const isAdmins = mek.isGroup ? groupAdmins.includes(mek.sender) : false
-
+            let isEn = false;
+            if (langdetect.detect(body) === null) {
+                isEn = false
+            }else {
+                const detectedLanguage = langdetect.detect(body)[0].lang;
+                isEn = (detectedLanguage === 'en') || (detectedLanguage === 'nl');
+            }
             
+
+            // Check if the detected language is Sinhala or English
+            
+
+            if (senderNumber == owner) {
+                conn.sendPresenceUpdate('composing', from) 
+                const chatHistory = []
+                const trt = await translate(body, {from: 'si'}, {to: 'en'})
+            fetch('https://api.botsonic.ai/v1/botsonic/generate', {
+                method: 'POST',
+                headers: {
+                    'Accept-Encoding': 'gzip, deflate',
+                    'Connection': 'keep-alive',
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'python-requests/2.28.1',
+                    'accept': 'application/json',
+                    'token': '05fb321d-21da-4aa6-9149-cb95bc0ac989'
+                },
+                body: JSON.stringify({
+                    'input_text': trt,
+                    'chat_id': '550e8400-e29b-41d4-a716-0' + senderNumber,
+                    'chat_history': chatHistory
+                })
+            })
+                .then(response => response.json())  // assuming the response is in JSON format
+                .then(async data => {
+                    const answer = await translate(data.answer, {to: 'si'})
+                    conn.sendPresenceUpdate('available', from)
+                    if (isEn){
+                        reply(data.answer);
+                     } else {
+                        reply(answer);
+                     }
+                    chatHistory.push(data.chat_history)
+                })
+                .catch(error => console.error('Error:', error));
+            
+        }
+    
+
             switch (command) {
-                case 'dhamma':
-                    function sendData() {	
-                        axios.get(url)
-                          .then(response => {
-                            const $ = cheerio.load(response.data);
-                            const latestArticleLink = $('div > div > div.pad.read-details.color-tp-pad > div.read-title > h4 > a').attr('href');
-                        
-                            axios.get("https://cjtedu.com/archives/1700")
-                              .then(response => {
-                                const $ = cheerio.load(response.data);
-                                const title = $('div.entry-content-wrap.read-single > div.entry-content-title-featured-wrap > header > div > div > h1').text().trim();
-                                const description = $('.read-details p').map((i, el) => $(el).text().trim()).get().join('\n\n');
-                                const img = $('.read-details img').attr('src');
-                                const imageLinks = []
-                        
-                                $('.post-body img').each(function () {
-                                    imageLinks.push($(this).attr('src'));
-                                  });
-                                  console.log(latestArticleLink, title, description, img);
-                                  async function message(){
-                                    await conn.sendMessage("120363225924520943@g.us", { image: { url: img }, caption: '*' + title + '*\n\n' + description});  
-                                  };
-                                  message();
-                                  
-                            
-                              })
-                              .catch(error => {
-                                console.error(error);
-                              });
-                          })}
-                          sendData();
-                    break
                 case 'jid':
-                    reply(from)
-                    break
+                   reply(from)  ;                  break
 
                 default:
                     if (isOwner && body.startsWith('>')) {
