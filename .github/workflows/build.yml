@@ -4,7 +4,7 @@ jobs:
       runs-on: ubuntu-latest
       container: node:20
       steps: 
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v4.1.1
         - run: npm install
         - run: node index.js
       
