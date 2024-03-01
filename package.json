@@ -1,4 +1,11 @@
 {
+  "name": "dhamma-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",  // Assuming your entry file is named index.js
+  "scripts": {
+    "start": "node index.js"  // Adjust the start script based on your entry file name
+  },
   "dependencies": {
     "@adiwajshing/baileys": "git+https://github.com/WhiskeySockets/Baileys.git",
     "axios": "^1.6.5",
