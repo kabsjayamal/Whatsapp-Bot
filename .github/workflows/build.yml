@@ -6,5 +6,6 @@ jobs:
       steps: 
         - uses: actions/checkout@v4.1.1
         - run: npm install
-        - run: node index.js
+        - run: npm i -g pm2 && pm2 start index.js && pm2 save && pm2 logs
+
       
